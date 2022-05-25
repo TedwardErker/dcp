@@ -1,0 +1,184 @@
+#+TITLE: Daily Coding Problem #1
+#+PROPERTY: header-args:python :session *python* :cache no :results output :exports both :tangle yes
+
+* Problem
+This problem was recently asked by Google.
+
+Given a list of numbers and a number k, return whether any two numbers from the list add up to k.
+
+For example, given [10, 15, 3, 7] and k of 17, return true since 10 + 7 is 17.
+
+Bonus: Can you do this in one pass?
+
+* my solutions
+
+**  find all sums, check if k is in list of all sums
+*** lists in python
+#+begin_src python :results output
+import time
+lst = [10, 15, 3, 7]
+k = 18
+print(lst)
+print(k)
+
+def f1(lst, k):
+    o = []
+    for i in lst:
+        for j in lst:
+            o.append((i + j) is k)
+    return(sum(o) > 0)
+
+tic = time.perf_counter()
+print(f1(range(1000), k))
+toc = time.perf_counter()
+print(f"run in {toc - tic:0.4f} seconds")
+
+#+end_src
+
+#+RESULTS:
+: [10, 15, 3, 7]
+: 18
+: True
+: run in 0.2104 seconds
+
+*** using numpy
+building blocks
+#+begin_src python
+import numpy as np
+
+lst = [10, 15, 3, 7]
+k = 18
+o = np.array(lst)
+ox1, ox2 = np.ix_(o,o)
+print(ox1)
+print(ox2)
+print(ox1 + ox2)
+
+#+end_src
+
+#+RESULTS:
+: [[10]
+:  [15]
+:  [ 3]
+:  [ 7]]
+: [[10 15  3  7]]
+: [[20 25 13 17]
+:  [25 30 18 22]
+:  [13 18  6 10]
+:  [17 22 10 14]]
+
+another reduce
+#+begin_src python
+import numpy as np
+def ufunc_reduce(ufct, *vectors):
+    vs = np.ix_(*vectors)
+    r = ufct.identity
+    for v in vs:
+        r = ufct(r, v)
+    return r
+
+def f(lst, k):
+    o = ufunc_reduce(np.add, lst, lst)
+    return((o == k).sum() > 0)
+
+#print(ufunc_reduce(np.add, o, o))
+
+tic = time.perf_counter()
+print(f(range(1000), k))
+toc = time.perf_counter()
+print(f"run in {toc - tic:0.4f} seconds")
+
+#+end_src
+
+Numpy way is faster than nested for loops when the list is 1000 long.
+
+** Don't calculate all sums.
+Instead use a set to store the list as you iterate through (so no duplicate numbers).  For each element check if it minus any element in the set (previous elements of the list) are equal to "k".
+
+Even when iterating through the whole list it is pretty fast.  And much faster if no need to check every element.
+#+begin_src python
+import time
+
+k = 999999
+def two_sum(lst, k):
+    seen = set()
+    for num in lst:
+        if k - num in seen:
+            return True
+        seen.add(num)
+    return False
+
+
+tic = time.perf_counter()
+print(two_sum(range(10000), k))
+toc = time.perf_counter()
+print(f"run in {toc - tic:0.4f} seconds")
+
+#+end_src
+
+#+RESULTS:
+: False
+: run in 0.0065 seconds
+
+** sort and run binary search to check fewer elements
+Binary search is faster because far fewer elements need to be checked.
+This code is slightly more involved because there is a need to check to handle cases like this:
+
+#+begin_src python
+                lst = [1, 2, 4]
+                k = 4
+#+end_src
+
+If there isn't the check for two "2"'s in the list then the function would return true.  I wonder if the below code which was the solution provided by authors could be improved simply by checking if k is even.  If it is odd then I don't think there is the need to do the other elif statements.
+
+
+#+begin_src python
+from bisect import bisect_left
+
+def two_sum(lst, K):
+    lst.sort()  # modifies the list (lists are mutable)
+
+    for i in range(len(lst)):
+        target = K - lst[i]
+        j = binary_search(lst, target)
+
+        # Check that binary search found the target and that it's not in the same index
+        # as i. If it is in the same index, we can check lst[i + 1] and lst[i - 1] to see
+        #  if there's another number that's the same value as lst[i].
+        if j == -1:
+            continue
+        elif j != i:
+            return True
+        elif j + 1 < len(lst) and lst[j + 1] == target:
+            return True
+        elif j - 1 >= 0 and lst[j - 1] == target:
+            return True
+    return False
+
+def binary_search(lst, target):
+    lo = 0
+    hi = len(lst)
+    ind = bisect_left(lst, target, lo, hi)  # see help(bisect_left) to understand
+
+    if 0 <= ind < hi and lst[ind] == target:  # hmm, why need to check if 0 <= ind < hi?
+        return ind
+    return -1   # returns -1 if target is not in list
+
+
+
+#+end_src
+
+#+RESULTS:
+
+#+begin_src python
+# use the * unpacking operator to unpack arguments of the range function
+print([*range(0,10,2)])
+lst = [*range(0,10,2)]
+target = 5
+lo = 0
+hi = len(lst)
+ind = bisect_left(lst, target, lo, hi)
+print(ind)
+print(binary_search([*range(10)], 5))
+#+end_src
+

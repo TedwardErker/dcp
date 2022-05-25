@@ -1,0 +1,9 @@
+#+TITLE: Daily Coding Problems
+
+This repository contains my attempts to solve daily coding problems.  Since I primarily use R, I'm solving these in python to demonstrate my capacity with that language.  In particular I'm focusing on using numpy.
+
+* Solved questions
+
+[[001.org]]
+
+[[002.org]]
