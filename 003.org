@@ -1,0 +1,131 @@
+#+TITLE: Daily Coding Problem #3
+#+PROPERTY: header-args:python :session *python* :results output
+
+* Problem
+This problem was asked by Google.
+
+Given the root to a binary tree, implement serialize(root), which serializes the tree into a string, and deserialize(s), which deserializes the string back into the tree.
+
+For example, given the following Node class
+
+class Node:
+    def __init__(self, val, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+The following test should pass:
+
+node = Node('root', Node('left', Node('left.left')), Node('right'))
+assert deserialize(serialize(node)).left.left.val == 'left.left'
+
+* Solution
+This is not my solution, but I have commented it to understand it.
+
+#+begin_src python
+
+class Node:
+    def __init__(self, val, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+
+Node("root")
+#+end_src
+
+#+RESULTS:
+
+#+begin_src python
+
+class Node:
+    def __init__(self, val, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+    def __str__(self):  # define print, this is for me to understand.  Serialize makes more sense
+        return self.val + " " + str(self.left) +  " " + str(self.right)
+
+Node("root")
+Node("root", Node("left", "left.left"), "right")
+
+#+end_src
+
+#+RESULTS:
+
+Clever way to output strings
+#+begin_src python
+
+print('{} {} {}'.format("hello", "to", "you"))
+
+print('{} {} {}'.format(1, "to", "you"))
+
+#+end_src
+
+#+RESULTS:
+: hello to you
+: 1 to you
+
+You can define a function and call it inside of itself.
+#+begin_src python
+def serialize(root):
+    if root is None:
+        return '#'
+    return '{} {} {}'.format(root.val, serialize(root.left), serialize(root.right))
+
+# This '{} {} {}' is neat.  It inserts the arguments of "format()" into the "{}"
+node = Node('root', Node('left', Node('left.left')), Node('right'))
+serialize(node)
+#+end_src
+
+#+RESULTS:
+
+split, splits sting into a list
+#+begin_src python
+sn = serialize(node)
+print(sn)
+#+end_src
+
+#+RESULTS:
+: root left left.left # # # right # #
+
+This function is quite clever (taken from given solutions). it iterates down the list.  how it gets the "right" node in the right place is very clever.  the function follows down the leftmost branch first, the successively moves towards the right.
+#+begin_src python
+def deserialize(data):
+    def helper():        # create helper function within deserialize
+        val = next(vals)  # move to next item in list
+        if val == '#':
+            return None
+        node = Node(val)       # if not empty, make a node of entry
+        node.left = helper()
+        node.right = helper()
+        return node
+    vals = iter(data.split())
+    return helper()
+
+node = Node('root', Node('left', Node('left.left')), Node('right'))
+
+print(node)
+deserialize(serialize(node))
+#+end_src
+
+#+RESULTS:
+: root left left.left None None None right None None
+
+
+#+begin_src python
+assert deserialize(serialize(node)).left.left.val == 'left.left'
+#+end_src
+
+#+RESULTS:
+
+This runs in O(N) time and space, since we iterate over the whole tree when serializing and deserializing.
+
+
+
+
+
+There are many ways to serialize and deserialize a binary tree, so don't worry if your solution differs from this one. We will be only going through one possible solution.
+
+We can approach this problem by first figuring out what we would like the serialized tree to look like. Ideally, it would contain the minimum information required to encode all the necessary information about the binary tree. One possible encoding might be to borrow S-expressions from Lisp. The tree Node(1, Node(2), Node(3)) would then look like '(1 (2 () ()) (3 () ()))', where the empty brackets denote nulls.
+
+To minimize data over the hypothetical wire, we could go a step further and prune out some unnecessary brackets. We could also replace the 2-character '()' with '#'. We can then infer leaf nodes by their form 'val # #' and thus get the structure of the tree that way. Then our tree would look like 1 2 # # 3 # #.
+#

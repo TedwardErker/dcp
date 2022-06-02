@@ -1,0 +1,88 @@
+#+TITLE: Daily Coding Problem #4
+#+PROPERTY: header-args:python :session *python* :results output
+* Problem
+This problem was asked by Stripe.
+
+Given an array of integers, find the first missing positive integer in linear time and constant space. In other words, find the lowest positive integer that does not exist in the array. The array can contain duplicates and negative numbers as well.
+
+For example, the input [3, 4, -1, 1] should give 2. The input [1, 2, 0] should give 3.
+
+You can modify the input array in-place.
+
+* my solution, which doesn't work becuase it uses a sort.
+- sort list
+- if all elements are non positive (last element less than or equal to 0), return 1
+- loop through the list, comparing each element in sorted list to the next one.  If the difference between these two is greater than 1 (absolute value), then the integer 1 greater than the current element is the answer.
+- if loop through all list and get to the end, then the anwer is 1 more than the last element of the list.
+#+begin_src python
+lst = [1, 2, 0, -3, -4, -7, 2]
+lst = [3, 4, -1, 1]
+lst = [1, 2, 0, -3, -4, -7, 2]
+lst = [-1, -2, 0, -3, -4, -7, -2]
+
+def findMissing(lst):
+    lst.sort()
+    if lst[-1] <= 0:
+        return(1)
+    for first, second in zip(lst, lst[1:]):
+        if first > 0:
+            dif = first - second
+            if dif < -1:
+                return(first + 1)
+            if first == lst[-1]:
+                return(first + 1)
+
+o = findMissing(lst)
+print(o)
+
+#+end_src
+
+#+RESULTS:
+: 1
+
+Another, maybe simpler, way after I looked at the solution below (but still not right).  Compare index to element after removing negatives and duplicates
+#+begin_src python
+inputLst = [1, 2, 0, -3, -4, -7, 2]
+inputLst = [3, 4, -1, 1]
+inputLst = [-1, -2, 0, -3, -4, -7, -2]
+inputLst = [1, 2, 0, -3, -4, -7, 2]
+inputLst = [1, 2, 3, 4]
+
+def findMissing(lst):
+    lst = list(set(lst))
+    lst.sort()
+    lst = [x for x in lst if x >= 0]
+    for ele in enumerate(lst):
+        if ele[0]+1 != ele[1]:
+            return(ele[1] + 1)
+        if ele[1] == lst[-1]:
+            return(ele[1] + 1)
+
+
+o = findMissing(inputLst)
+print(o)
+
+#+end_src
+
+#+RESULTS:
+: 5
+
+
+My solutions solve the problem, but are not so fast or clever.  The solutions provided are much nicer and fit properly within the constraints. I like the one that uses a set.  Nice and simple.
+
+#+begin_src python
+
+lst = [1, 2, 3, 4]
+s = set(lst)
+i = 1
+while i in s:
+    i += 1
+return i
+
+
+#+end_src
+
+#+RESULTS:
+: 5
+
+
