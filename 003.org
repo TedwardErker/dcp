@@ -107,9 +107,6 @@ print(node)
 deserialize(serialize(node))
 #+end_src
 
-#+RESULTS:
-: root left left.left None None None right None None
-
 
 #+begin_src python
 assert deserialize(serialize(node)).left.left.val == 'left.left'

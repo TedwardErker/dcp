@@ -1,0 +1,52 @@
+#+TITLE: Daily Coding Problem #7
+#+PROPERTY: header-args:python :session *python* :results output
+
+* Problem
+This problem was asked by Facebook.
+
+Given the mapping a = 1, b = 2, ... z = 26, and an encoded message, count the number of ways it can be decoded.
+
+For example, the message '111' would give 3, since it could be decoded as 'aaa', 'ka', and 'ak'.
+
+You can assume that the messages are decodable. For example, '001' is not allowed.
+
+* my solution
+
+This solution uses recursion and was inspired by the given solution.  The idea is that we use recursion to follow down all the possible paths of decoding the string and when we get to the end of the possible path (when there is just one letter left) we add 1 to the number of ways to decode the string.  The key is that at each point in the string, we check if the next two digits are between 10 and 26 inclusive.  If they are, then we have a branching which means we will have an additional way of decoding the string.  So we then follow two ways of decoding - one way with the next letter, s[1:], and one way with the letter after the next, s[2:].
+
+#+begin_src python
+
+def ways_to_encode(s):
+    if len(s[:2]) <= 1:   #if pass a string of a single letter, return 1
+        return 1
+
+    ways = 0   # start with 0, we will always add at least 1.
+    if 10 <= int(s[:2]) <= 26:         # if next two numbers encode a valid letter
+        ways += ways_to_encode(s[2:])  # skip two digits to continue counting
+
+    ways += ways_to_encode(s[1:])   # always move to next digit and continue counting ways.
+
+    return ways
+
+print(ways_to_encode("111"))
+print(ways_to_encode("127"))
+print(ways_to_encode("271"))
+
+print(ways_to_encode("123"))
+print(ways_to_encode("103"))
+print(ways_to_encode("191"))
+print(ways_to_encode("991"))
+print(ways_to_encode("9911"))
+#+end_src
+
+#+RESULTS:
+: 3
+: 2
+: 1
+: 3
+: 2
+: 2
+: 1
+: 2
+
+
